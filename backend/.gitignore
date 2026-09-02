@@ -1,13 +1,16 @@
 node_modules/
 dist/
-.env
 uploads/*
 !uploads/.gitkeep
-*.log
-.vercel
-.env*
-api/*.js
-api/*.js.map
-api/*.d.ts
+
+# The Flutter web bundle, produced by ../build-web.sh
 public/
+
+# Secrets. .env.example is the documented template and is committed.
+.env
+.env.local
+.env.*.local
+!.env.example
+
 .vercel
+*.log
