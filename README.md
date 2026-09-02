@@ -1,8 +1,13 @@
 # BrightPath Coaching
 
-A complete coaching-institute app: **one Android APK** that shows an admin
-console or a student portal depending on who logs in, backed by a real
-NestJS + PostgreSQL API.
+A complete coaching-institute app: **one build** that shows an admin console or
+a student portal depending on who logs in, backed by a real NestJS + PostgreSQL
+API. Ships as an Android APK and as a web app from the same codebase.
+
+> **Live:** <https://brightpath-coaching.vercel.app> ·
+> **Android:** [latest release](https://github.com/saurabhsingh2345/brightpath-coaching/releases/latest) ·
+> **Handing it to the institute?** [HANDOVER.md](HANDOVER.md) ·
+> **Deploying / maintaining?** [DEPLOY.md](DEPLOY.md)
 
 ```
 Flutter APK  ──HTTPS REST + WebSocket──▶  NestJS  ──Prisma──▶  PostgreSQL
