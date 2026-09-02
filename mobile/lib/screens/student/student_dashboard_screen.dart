@@ -8,6 +8,7 @@ import '../../state/async_value.dart';
 import '../../state/auth_state.dart';
 import '../../widgets/common.dart';
 import '../../widgets/states.dart';
+import '../../widgets/theme_button.dart';
 import '../admin/announcements_screen.dart';
 import '../admin/student_fees_screen.dart';
 import '../shared/attendance_report_screen.dart';
@@ -68,6 +69,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
           },
         ),
         actions: [
+          const ThemeToggleButton(),
           IconButton(
             tooltip: 'Refresh',
             onPressed: () => _ctrl.load(),

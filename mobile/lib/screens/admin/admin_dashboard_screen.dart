@@ -9,6 +9,7 @@ import '../../state/async_value.dart';
 import '../../state/auth_state.dart';
 import '../../widgets/common.dart';
 import '../../widgets/states.dart';
+import '../../widgets/theme_button.dart';
 import 'announcements_screen.dart';
 import 'exams_screen.dart';
 import 'fees_screen.dart';
@@ -59,6 +60,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           ],
         ),
         actions: [
+          const ThemeToggleButton(),
           IconButton(
             tooltip: 'Refresh',
             onPressed: () => _ctrl.load(),

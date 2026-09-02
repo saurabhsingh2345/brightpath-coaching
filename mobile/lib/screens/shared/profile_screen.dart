@@ -11,6 +11,7 @@ import '../../state/auth_state.dart';
 import '../../widgets/common.dart';
 import '../../widgets/states.dart';
 import '../admin/clear_demo_screen.dart';
+import '../../state/theme_state.dart';
 
 /// Profile + settings, shared by both roles. Students see their enrolment
 /// details; admins see their account only.
@@ -230,6 +231,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Card(
                 child: Column(
                   children: [
+                    Consumer<ThemeState>(
+                      builder: (context, t, _) => ListTile(
+                        leading: Icon(t.icon, size: 21),
+                        title: const Text('Appearance'),
+                        subtitle: Text(
+                          t.label,
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                        trailing: SegmentedButton<ThemeMode>(
+                          style: const ButtonStyle(
+                            visualDensity: VisualDensity.compact,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          showSelectedIcon: false,
+                          segments: const [
+                            ButtonSegment(
+                              value: ThemeMode.light,
+                              icon: Icon(Icons.light_mode_rounded, size: 17),
+                            ),
+                            ButtonSegment(
+                              value: ThemeMode.dark,
+                              icon: Icon(Icons.dark_mode_rounded, size: 17),
+                            ),
+                            ButtonSegment(
+                              value: ThemeMode.system,
+                              icon: Icon(Icons.brightness_auto_rounded, size: 17),
+                            ),
+                          ],
+                          selected: {t.mode},
+                          onSelectionChanged: (s) => t.set(s.first),
+                        ),
+                      ),
+                    ),
+                    const Divider(height: 1),
                     ListTile(
                       leading: const Icon(Icons.lock_outline_rounded, size: 21),
                       title: const Text('Change password'),

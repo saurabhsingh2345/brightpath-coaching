@@ -1344,9 +1344,34 @@ class ChatContact {
 
 
 // ── maintenance ───────────────────────────────────────────────
+class KeptData {
+  KeptData({
+    required this.admins,
+    required this.students,
+    required this.batches,
+    required this.announcements,
+    required this.materials,
+  });
+
+  final int admins, students, batches, announcements, materials;
+
+  /// True once the institute has entered anything of their own.
+  bool get hasAny =>
+      students > 0 || batches > 0 || announcements > 0 || materials > 0;
+
+  factory KeptData.fromJson(Map<String, dynamic> j) => KeptData(
+        admins: _int(j['admins']),
+        students: _int(j['students']),
+        batches: _int(j['batches']),
+        announcements: _int(j['announcements']),
+        materials: _int(j['materials']),
+      );
+}
+
 class DemoSummary {
   DemoSummary({
     required this.hasDemoData,
+    required this.keeps,
     required this.students,
     required this.batches,
     required this.announcements,
@@ -1359,6 +1384,7 @@ class DemoSummary {
   });
 
   final bool hasDemoData;
+  final KeptData keeps;
   final int students,
       batches,
       announcements,
@@ -1371,6 +1397,11 @@ class DemoSummary {
 
   factory DemoSummary.fromJson(Map<String, dynamic> j) => DemoSummary(
         hasDemoData: _bool(j['hasDemoData']),
+        keeps: KeptData.fromJson(
+          j['keeps'] is Map
+              ? Map<String, dynamic>.from(j['keeps'] as Map)
+              : const {},
+        ),
         students: _int(j['students']),
         batches: _int(j['batches']),
         announcements: _int(j['announcements']),

@@ -161,18 +161,36 @@ ThemeData buildTheme({Brightness brightness = Brightness.light}) {
         ),
       ),
     ),
-    bottomSheetTheme: const BottomSheetThemeData(
+    // Surfaces are pinned explicitly. Leaving them to the framework produced
+    // a light sheet over a dark page, so both themes state their own colours.
+    bottomSheetTheme: BottomSheetThemeData(
       showDragHandle: true,
       surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(
+      backgroundColor: isLight ? Colors.white : scheme.surfaceContainerLow,
+      modalBackgroundColor:
+          isLight ? Colors.white : scheme.surfaceContainerLow,
+      dragHandleColor: scheme.onSurfaceVariant.withValues(alpha: 0.4),
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
     ),
     dialogTheme: DialogThemeData(
       surfaceTintColor: Colors.transparent,
+      backgroundColor: isLight ? Colors.white : scheme.surfaceContainerLow,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(kRadius),
       ),
+    ),
+    datePickerTheme: DatePickerThemeData(
+      surfaceTintColor: Colors.transparent,
+      backgroundColor: isLight ? Colors.white : scheme.surfaceContainerLow,
+    ),
+    timePickerTheme: TimePickerThemeData(
+      backgroundColor: isLight ? Colors.white : scheme.surfaceContainerLow,
+    ),
+    popupMenuTheme: PopupMenuThemeData(
+      surfaceTintColor: Colors.transparent,
+      color: isLight ? Colors.white : scheme.surfaceContainerLow,
     ),
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,

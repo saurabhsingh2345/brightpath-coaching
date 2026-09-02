@@ -182,31 +182,63 @@ class _ClearDemoScreenState extends State<ClearDemoScreen> {
                 ),
               ),
 
-              const SizedBox(height: Gap.lg),
-              Container(
-                padding: const EdgeInsets.all(Gap.lg),
-                decoration: BoxDecoration(
-                  color: StatusColors.present.withValues(alpha: 0.09),
-                  borderRadius: BorderRadius.circular(kRadiusSm),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(Icons.verified_user_outlined,
-                        size: 18, color: StatusColors.present),
-                    const SizedBox(width: Gap.md),
-                    Expanded(
-                      child: Text(
-                        'Your own account and anything you have created stay '
-                        'exactly as they are. Only the sample data is removed.',
+              const SectionHeader(
+                title: 'What stays',
+                padding: EdgeInsets.only(top: Gap.xl, bottom: Gap.md),
+              ),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(Gap.lg),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.verified_user_rounded,
+                              size: 19, color: StatusColors.present),
+                          const SizedBox(width: Gap.md),
+                          Expanded(
+                            child: Text(
+                              'Everything you created yourself',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall
+                                  ?.copyWith(fontWeight: FontWeight.w700),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: Gap.md),
+                      Text(
+                        d.keeps.hasAny
+                            ? 'You currently have '
+                                '${d.keeps.students} student(s), '
+                                '${d.keeps.batches} batch(es), '
+                                '${d.keeps.announcements} announcement(s) and '
+                                '${d.keeps.materials} document(s) of your own. '
+                                'None of it is affected.'
+                            : 'You have not added anything of your own yet. '
+                                'Once you do, this button can never touch it.',
                         style: TextStyle(
                           fontSize: 12.5,
-                          height: 1.5,
-                          color: scheme.onSurface,
+                          height: 1.55,
+                          color: scheme.onSurfaceVariant,
                         ),
                       ),
-                    ),
-                  ],
+                      const Divider(height: Gap.xl),
+                      Text(
+                        'This removes only the rows that shipped with the app. '
+                        'Your admin login, your students, their attendance, '
+                        'fees, receipts, exams and messages are stored '
+                        'separately and are not part of this action.',
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          height: 1.55,
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
 

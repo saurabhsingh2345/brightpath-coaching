@@ -4,6 +4,7 @@ import '../../core/brand.dart';
 import '../../core/theme.dart';
 import '../../state/auth_state.dart';
 import '../../widgets/states.dart';
+import '../../widgets/theme_button.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -50,7 +51,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
     return Scaffold(
       body: SafeArea(
-        child: Center(
+        child: Stack(
+          children: [
+        Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(
               horizontal: Gap.xl,
@@ -214,6 +217,17 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
+        ),
+            // Last in the Stack so it paints above the scrolling form and
+            // stays tappable.
+            const Align(
+              alignment: Alignment.topRight,
+              child: Padding(
+                padding: EdgeInsets.only(top: Gap.sm, right: Gap.sm),
+                child: ThemeToggleButton(),
+              ),
+            ),
+          ],
         ),
       ),
     );

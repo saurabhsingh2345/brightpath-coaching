@@ -51,8 +51,13 @@ export class MaintenanceService {
         : Promise.resolve(0),
     ]);
 
+    // What the institute has entered themselves. Shown alongside the removal
+    // list so it is obvious this operation cannot touch it.
+    const keeps = await this.ownSummary();
+
     return {
       hasDemoData: students + batches + announcements + materials + admins > 0,
+      keeps,
       students,
       demoAdmins: admins,
       batches,
@@ -130,6 +135,21 @@ export class MaintenanceService {
       },
       remaining,
     };
+  }
+
+  /** Rows the institute created themselves - never touched by a clear. */
+  async ownSummary() {
+    const [admins, students, batches, announcements, materials] =
+      await Promise.all([
+        this.prisma.user.count({
+          where: { isDemo: false, role: Role.ADMIN },
+        }),
+        this.prisma.student.count({ where: { user: { isDemo: false } } }),
+        this.prisma.batch.count({ where: { isDemo: false } }),
+        this.prisma.announcement.count({ where: { isDemo: false } }),
+        this.prisma.studyMaterial.count({ where: { isDemo: false } }),
+      ]);
+    return { admins, students, batches, announcements, materials };
   }
 
   /** What is actually left after a clear - shown as reassurance. */

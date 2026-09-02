@@ -9,6 +9,7 @@ import 'services/api_service.dart';
 import 'services/chat_socket.dart';
 import 'state/auth_state.dart';
 import 'state/chat_state.dart';
+import 'state/theme_state.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/splash_screen.dart';
 import 'screens/admin/admin_shell.dart';
@@ -32,6 +33,7 @@ class _BrightPathAppState extends State<BrightPathApp> {
   late final AuthState _auth;
   late final ChatSocket _socket;
   late final ChatState _chat;
+  late final ThemeState _theme;
 
   @override
   void initState() {
@@ -42,6 +44,7 @@ class _BrightPathAppState extends State<BrightPathApp> {
     _auth = AuthState(tokens: _tokens, client: _client, api: _api);
     _socket = ChatSocket(_tokens);
     _chat = ChatState(api: _api, socket: _socket);
+    _theme = ThemeState()..load();
 
     // Chat only runs while someone is signed in.
     _auth.addListener(_onAuthChanged);
@@ -66,6 +69,7 @@ class _BrightPathAppState extends State<BrightPathApp> {
     _auth.removeListener(_onAuthChanged);
     _chat.dispose();
     _socket.dispose();
+    _theme.dispose();
     _auth.dispose();
     super.dispose();
   }
@@ -80,14 +84,17 @@ class _BrightPathAppState extends State<BrightPathApp> {
         ChangeNotifierProvider<AuthState>.value(value: _auth),
         Provider<ChatSocket>.value(value: _socket),
         ChangeNotifierProvider<ChatState>.value(value: _chat),
+        ChangeNotifierProvider<ThemeState>.value(value: _theme),
       ],
-      child: MaterialApp(
-        title: Brand.fullName,
-        debugShowCheckedModeBanner: false,
-        theme: buildTheme(),
-        darkTheme: buildTheme(brightness: Brightness.dark),
-        themeMode: ThemeMode.system,
-        home: const _RoleRouter(),
+      child: Consumer<ThemeState>(
+        builder: (context, theme, _) => MaterialApp(
+          title: Brand.fullName,
+          debugShowCheckedModeBanner: false,
+          theme: buildTheme(),
+          darkTheme: buildTheme(brightness: Brightness.dark),
+          themeMode: theme.mode,
+          home: const _RoleRouter(),
+        ),
       ),
     );
   }
