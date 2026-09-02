@@ -1,0 +1,34 @@
+# ── backend ──
+backend/node_modules/
+backend/dist/
+backend/uploads/*
+!backend/uploads/.gitkeep
+# Flutter web bundle, produced by ./build-web.sh
+backend/public/
+# stray output if a build ever emits beside the sources
+backend/api/*.js
+backend/api/*.d.ts
+
+# ── mobile ──
+mobile/.dart_tool/
+mobile/build/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/android/.gradle/
+mobile/android/local.properties
+mobile/android/key.properties
+mobile/ios/Pods/
+mobile/ios/.symlinks/
+
+# ── secrets ──
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# ── tooling ──
+.vercel
+.DS_Store
+*.log

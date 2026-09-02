@@ -1,0 +1,420 @@
+// BrightPath Coaching - Prisma schema
+// PostgreSQL (local or Supabase)
+
+generator client {
+  provider      = "prisma-client-js"
+  // native for local work, rhel-openssl-3.0.x for Vercel's Lambda runtime.
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  ADMIN
+  STUDENT
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  LEAVE
+}
+
+enum FeeStatus {
+  PENDING
+  PARTIAL
+  PAID
+  OVERDUE
+}
+
+enum PaymentMode {
+  CASH
+  UPI
+  CARD
+  BANK_TRANSFER
+  CHEQUE
+}
+
+enum AnnouncementAudience {
+  ALL
+  BATCH
+}
+
+enum ConversationType {
+  DIRECT
+  BATCH
+}
+
+enum MessageKind {
+  TEXT
+  FILE
+  SYSTEM
+}
+
+enum Weekday {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  name         String
+  role         Role      @default(STUDENT)
+  phone        String?
+  avatarUrl    String?
+  isActive     Boolean   @default(true)
+  refreshToken String? // hashed refresh token
+  lastLoginAt  DateTime?
+  /// Seeded walkthrough data. Removed by the "Clear demo data" action.
+  isDemo       Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  student              Student?
+  createdAnnouncements Announcement[]            @relation("AnnouncementAuthor")
+  markedAttendance     Attendance[]              @relation("AttendanceMarker")
+  uploadedMaterials    StudyMaterial[]           @relation("MaterialUploader")
+  recordedPayments     FeePayment[]              @relation("PaymentRecorder")
+  conversations        ConversationParticipant[]
+  sentMessages         Message[]                 @relation("MessageSender")
+
+  @@index([role])
+  @@index([isActive])
+  @@index([isDemo])
+  @@map("users")
+}
+
+model Student {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  studentCode   String   @unique // human readable e.g. BP2026001
+  name          String
+  phone         String
+  email         String
+  parentName    String
+  parentPhone   String
+  address       String
+  course        String
+  admissionDate DateTime @default(now())
+  isActive      Boolean  @default(true)
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  batchId String?
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  batch       Batch?       @relation(fields: [batchId], references: [id], onDelete: SetNull)
+  attendance  Attendance[]
+  fees        Fee[]
+  examResults ExamResult[]
+
+  @@index([batchId])
+  @@index([isActive])
+  @@index([name])
+  @@index([course])
+  @@map("students")
+}
+
+model Batch {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  course    String
+  subject   String
+  timing    String // e.g. "07:00 AM - 09:00 AM"
+  room      String
+  capacity  Int      @default(40)
+  startDate DateTime @default(now())
+  isActive  Boolean  @default(true)
+  isDemo    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  students      Student[]
+  attendance    Attendance[]
+  timetable     TimetableSlot[]
+  exams         Exam[]
+  materials     StudyMaterial[]
+  announcements Announcement[]
+  conversations Conversation[]
+
+  @@index([isActive])
+  @@index([course])
+  @@index([isDemo])
+  @@map("batches")
+}
+
+model Attendance {
+  id         String           @id @default(uuid())
+  studentId  String
+  batchId    String
+  date       DateTime         @db.Date
+  status     AttendanceStatus
+  remarks    String?
+  markedById String?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  student  Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  batch    Batch   @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  markedBy User?   @relation("AttendanceMarker", fields: [markedById], references: [id], onDelete: SetNull)
+
+  @@unique([studentId, date], name: "student_date_unique")
+  @@index([batchId, date])
+  @@index([date])
+  @@index([status])
+  @@map("attendance")
+}
+
+model Fee {
+  id                String    @id @default(uuid())
+  studentId         String
+  title             String // e.g. "Term 1 Tuition"
+  totalAmount       Decimal   @db.Decimal(10, 2)
+  paidAmount        Decimal   @default(0) @db.Decimal(10, 2)
+  dueDate           DateTime
+  status            FeeStatus @default(PENDING)
+  installmentNo     Int       @default(1)
+  totalInstallments Int       @default(1)
+  notes             String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  student  Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  payments FeePayment[]
+
+  @@index([studentId])
+  @@index([status])
+  @@index([dueDate])
+  @@map("fees")
+}
+
+model FeePayment {
+  id           String      @id @default(uuid())
+  feeId        String
+  amount       Decimal     @db.Decimal(10, 2)
+  paidAt       DateTime    @default(now())
+  mode         PaymentMode @default(CASH)
+  receiptNo    String      @unique
+  reference    String?
+  recordedById String?
+  createdAt    DateTime    @default(now())
+
+  fee        Fee   @relation(fields: [feeId], references: [id], onDelete: Cascade)
+  recordedBy User? @relation("PaymentRecorder", fields: [recordedById], references: [id], onDelete: SetNull)
+
+  @@index([feeId])
+  @@index([paidAt])
+  @@map("fee_payments")
+}
+
+model TimetableSlot {
+  id        String    @id @default(uuid())
+  batchId   String
+  subject   String
+  teacher   String?
+  weekday   Weekday
+  startTime String // "07:00"
+  endTime   String // "09:00"
+  room      String
+  date      DateTime? @db.Date // optional one-off / extra class
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  batch Batch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  @@index([batchId, weekday])
+  @@index([date])
+  @@map("timetable_slots")
+}
+
+model Exam {
+  id          String   @id @default(uuid())
+  batchId     String
+  name        String
+  examDate    DateTime
+  description String?
+  subjects    Json // [{ name: "Physics", maxMarks: 100 }]
+  totalMarks  Int      @default(0)
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  batch   Batch        @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  results ExamResult[]
+
+  @@index([batchId])
+  @@index([examDate])
+  @@map("exams")
+}
+
+model ExamResult {
+  id         String   @id @default(uuid())
+  examId     String
+  studentId  String
+  marks      Json // [{ subject: "Physics", marksObtained: 78, maxMarks: 100 }]
+  totalMarks Int      @default(0)
+  obtained   Decimal  @default(0) @db.Decimal(10, 2)
+  percentage Decimal  @default(0) @db.Decimal(5, 2)
+  grade      String?
+  rank       Int?
+  remarks    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  exam    Exam    @relation(fields: [examId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([examId, studentId], name: "exam_student_unique")
+  @@index([studentId])
+  @@index([examId])
+  @@map("exam_results")
+}
+
+model StudyMaterial {
+  id           String   @id @default(uuid())
+  title        String
+  description  String?
+  subject      String
+  batchId      String?
+  fileName     String
+  fileUrl      String
+  fileType     String
+  fileSize     Int
+  uploadedById String?
+  isDemo       Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  batch      Batch? @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  uploadedBy User?  @relation("MaterialUploader", fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  @@index([batchId])
+  @@index([subject])
+  @@map("study_materials")
+}
+
+model Announcement {
+  id        String               @id @default(uuid())
+  title     String
+  body      String
+  audience  AnnouncementAudience @default(ALL)
+  batchId   String?
+  isPinned  Boolean              @default(false)
+  isDemo    Boolean              @default(false)
+  authorId  String?
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+
+  batch  Batch? @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  author User?  @relation("AnnouncementAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([batchId])
+  @@index([createdAt])
+  @@map("announcements")
+}
+
+// ─────────────────────────────────────────────────────────────
+// Chat
+// ─────────────────────────────────────────────────────────────
+
+model Conversation {
+  id      String           @id @default(uuid())
+  type    ConversationType
+  title   String? // BATCH threads take the batch name; DIRECT is derived
+  batchId String? // set for BATCH threads
+
+  /// Stable "smaller-uuid:larger-uuid" key for DIRECT threads. Unique, so two
+  /// people can never end up with two separate 1:1 conversations.
+  directKey String? @unique
+
+  /// Admins can freeze a batch thread to read-only.
+  isLocked Boolean @default(false)
+
+  /// Denormalised so the conversation list can sort without touching messages.
+  lastMessageAt   DateTime?
+  lastMessageText String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  batch        Batch?                    @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  @@index([type])
+  @@index([batchId])
+  @@index([lastMessageAt])
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id             String    @id @default(uuid())
+  conversationId String
+  userId         String
+  /// Everything created after this timestamp counts as unread.
+  lastReadAt     DateTime?
+  isMuted        Boolean   @default(false)
+  joinedAt       DateTime  @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId], name: "conversation_user_unique")
+  @@index([userId])
+  @@map("conversation_participants")
+}
+
+model Message {
+  id             String      @id @default(uuid())
+  conversationId String
+  senderId       String?
+  kind           MessageKind @default(TEXT)
+  body           String
+  fileName       String?
+  fileUrl        String?
+  fileType       String?
+  fileSize       Int?
+  /// Soft delete so a removed message can still be shown as "deleted".
+  deletedAt      DateTime?
+  editedAt       DateTime?
+  createdAt      DateTime    @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User?        @relation("MessageSender", fields: [senderId], references: [id], onDelete: SetNull)
+
+  @@index([conversationId, createdAt])
+  @@index([senderId])
+  @@map("messages")
+}
+
+/// Uploaded file contents.
+///
+/// Serverless hosts have no persistent disk, so bytes live here instead of on
+/// the filesystem. At institute scale (lecture notes and worksheets) this is
+/// simpler and cheaper than an object store, and it means backups of the
+/// database are backups of the files too. Swap in S3/Blob by adding a driver
+/// to UploadsService if the volume ever outgrows it.
+model FileObject {
+  id        String   @id @default(uuid())
+  fileName  String
+  mimeType  String
+  size      Int
+  data      Bytes
+  isDemo    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@map("file_objects")
+}

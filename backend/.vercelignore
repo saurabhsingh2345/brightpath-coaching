@@ -1,0 +1,7 @@
+node_modules
+# Anchored with a leading slash: a bare "uploads" would also exclude
+# src/uploads/, which is application code.
+/uploads
+# dist is produced by the build and must ship
+.env
+.env.local

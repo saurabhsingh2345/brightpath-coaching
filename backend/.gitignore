@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.env
+uploads/*
+!uploads/.gitkeep
+*.log
+.vercel
+.env*
+api/*.js
+api/*.js.map
+api/*.d.ts
+public/
+.vercel
