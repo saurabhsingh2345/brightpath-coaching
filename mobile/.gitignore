@@ -46,3 +46,7 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# `flutter create` regenerates this counter-app test, which does not compile
+# against this project. Real tests live alongside it.
+test/widget_test.dart
