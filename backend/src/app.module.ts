@@ -55,8 +55,12 @@ import { HealthController } from './health.controller';
       ? [
           ServeStaticModule.forRoot({
             rootPath: join(process.cwd(), 'public'),
-            exclude: ['/api*', '/health', '/docs*'],
-            serveStaticOptions: { index: 'index.html' },
+            // Real asset requests are served by the static middleware. This
+            // controls only the index.html fallback, so an unmatched /api,
+            // /health or /docs path reaches Nest and gets a JSON 404 rather
+            // than a page of HTML the mobile client cannot parse.
+            renderPath: /^(?!\/api\b|\/health\b|\/docs\b).*$/,
+            serveStaticOptions: { index: false },
           }),
         ]
       : []),
